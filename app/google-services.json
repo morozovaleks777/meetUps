@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "666709240039",
+    "project_id": "meetups-405402",
+    "storage_bucket": "meetups-405402.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666709240039:android:45fa9f2de23ce1c374da42",
+        "android_client_info": {
+          "package_name": "com.morozov.meetups"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlHilFK5a1Ut02bAaKmc9SrkOsf2mhZqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

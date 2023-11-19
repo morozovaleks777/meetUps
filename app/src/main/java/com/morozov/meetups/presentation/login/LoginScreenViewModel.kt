@@ -9,6 +9,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.morozov.meetups.domain.MUser
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -18,30 +19,42 @@ class LoginScreenViewModel:ViewModel() {
 
     private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading
+val errorMessage = MutableStateFlow("")
 
 
-    fun signInWithEmailAndPassword(email: String, password: String, home: () -> Unit )
-            = viewModelScope.launch{
-        try {
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Timber.tag("FB")
-                            .d("signInWithEmailAndPassword: Yayayay! %s", task.result.toString())
 
-                        home()
-                    }else {
-                        Timber.tag("FB").d("signInWithEmailAndPassword: %s", task.result.toString())
-                    }
+        fun signInWithEmailAndPassword(email: String, password: String, home: () -> Unit) =
+            viewModelScope.launch {
+                if (isEmailValid(email))
+                {
+                try {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Timber.tag("FB")
+                                    .d(
+                                        "signInWithEmailAndPassword: Yayayay! %s",
+                                        task.result.toString()
+                                    )
 
-
+                                home()
+                            }else {
+                                Timber.tag("FB").d("signInWithEmailAndPassword: %s", task.exception?.message)
+                                errorMessage.value = "Authentication failed: ${task.exception?.message}"
+                            }
+                        }
+                } catch (ex: Exception) {
+                    errorMessage.value = "Authentication failed"
+                    Timber.tag("FB").d("signInWithEmailAndPassword: %s", ex.message)
                 }
 
-        }catch (ex: Exception) {
-            Timber.tag("FB").d("signInWithEmailAndPassword: %s", ex.message)
-        }
-
-
+            } else {
+                    errorMessage.value = "Invalid email format"
+                }
+    }
+    fun isEmailValid(email: String): Boolean {
+        val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
+        return email.matches(emailRegex.toRegex())
     }
 
 

@@ -2,16 +2,21 @@ package com.morozov.meetups.presentation.login
 
 
 
-import android.graphics.drawable.Drawable
-import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -19,18 +24,20 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -39,18 +46,16 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import coil.size.Scale
+import com.morozov.meetups.R
 import com.morozov.meetups.ui.theme.ColorsExtra
 import com.morozov.meetups.ui.theme.Coral
 
 @Composable
 fun AppLogo(modifier: Modifier = Modifier) {
-    Text(text = "Friend Zone",
+    Text(text = "FriendsZone",
         modifier = modifier.padding(bottom = 16.dp),
         style = MaterialTheme.typography.headlineLarge.copy(fontSize = 45.sp, fontStyle = FontStyle.Italic),
         color = Color.White,
@@ -108,7 +113,7 @@ fun InputField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = ColorsExtra.SolidLight100,
             unfocusedTextColor = ColorsExtra.SolidLight100,
-            errorTextColor = ColorsExtra.SolidLight100,
+            errorTextColor = ColorsExtra.SolidDark100,
 
             focusedContainerColor = Color.White,
             unfocusedContainerColor = ColorsExtra.SolidPink100.copy(0.1f),
@@ -122,9 +127,9 @@ fun InputField(
             unfocusedLabelColor = ColorsExtra.SolidLight50,
             errorLabelColor = ColorsExtra.SolidRed100,
 
-            errorSupportingTextColor = ColorsExtra.SolidRed100,
-            focusedSupportingTextColor = ColorsExtra.SolidLight80,
-            unfocusedSupportingTextColor = ColorsExtra.SolidLight80,
+            errorSupportingTextColor = ColorsExtra.SolidDark100,
+            focusedSupportingTextColor = ColorsExtra.SolidDark100,
+            unfocusedSupportingTextColor = ColorsExtra.SolidDark100,
         )
 
     )
@@ -138,14 +143,20 @@ fun InputField(
 fun PasswordInput(
     modifier: Modifier,
     passwordState: MutableState<String>,
+    keyboardType: KeyboardType = KeyboardType.Password,
     labelId: String,
     enabled: Boolean,
-    passwordVisibility: MutableState<Boolean>,
+    errorText:String = "Error",
+    supportText: String = "",
     imeAction: ImeAction = ImeAction.Done,
     onAction: KeyboardActions = KeyboardActions.Default,
 ) {
-
-    val visualTransformation = if (passwordVisibility.value) VisualTransformation.None else
+    var showPassword by remember { mutableStateOf(false) }
+    val visualTransformation = if (showPassword || keyboardType != KeyboardType.Password) {
+        VisualTransformation.None
+    } else {
+        PasswordVisualTransformation()
+    }
         PasswordVisualTransformation()
     OutlinedTextField(value = passwordState.value,
         onValueChange = {
@@ -162,12 +173,33 @@ fun PasswordInput(
             keyboardType = KeyboardType.Password,
             imeAction = imeAction),
         visualTransformation = visualTransformation,
-        trailingIcon = {PasswordVisibility(passwordVisibility = passwordVisibility)},
+        supportingText = {
+            val extraText = errorText.ifEmpty { supportText }
+            if (extraText.isNotEmpty()) {
+                Text(text = extraText)
+            }
+        },
+        trailingIcon = {
+            if (keyboardType == KeyboardType.Password) {
+                IconButton(onClick = {showPassword = !showPassword }) {
+                    Icon(
+                        painter = if (showPassword) {
+                            painterResource(R.drawable.ic_eye_closed)
+                        } else {
+                            painterResource(R.drawable.ic_eye_open)
+                        },
+                        contentDescription = stringResource(R.string.password_visibility),
+                        modifier = Modifier.size(24.dp),
+                        tint = ColorsExtra.SolidDark100
+                    )
+                }
+            }
+        },
         keyboardActions = onAction,
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = ColorsExtra.SolidLight100,
             unfocusedTextColor = ColorsExtra.SolidLight100,
-            errorTextColor = ColorsExtra.SolidLight100,
+            errorTextColor = ColorsExtra.SolidDark100,
 
             focusedContainerColor = Color.White,
             unfocusedContainerColor = ColorsExtra.SolidPink100.copy(0.1f),
@@ -181,75 +213,91 @@ fun PasswordInput(
             unfocusedLabelColor = ColorsExtra.SolidLight50,
             errorLabelColor = ColorsExtra.SolidRed100,
 
-            errorSupportingTextColor = ColorsExtra.SolidRed100,
-            focusedSupportingTextColor = ColorsExtra.SolidLight80,
-            unfocusedSupportingTextColor = ColorsExtra.SolidLight80,
+            errorSupportingTextColor = ColorsExtra.SolidDark100,
+            focusedSupportingTextColor = ColorsExtra.SolidDark100,
+            unfocusedSupportingTextColor = ColorsExtra.SolidDark100,
         )
     )
 
 }
 
+@ExperimentalComposeUiApi
+@Preview
 @Composable
-fun PasswordVisibility(passwordVisibility: MutableState<Boolean>) {
-    val visible = passwordVisibility.value
-    IconButton(onClick = { passwordVisibility.value = !visible}) {
-        Icons.Default.Close
-
-    }
-
-}
-@Composable
-fun BackgroundImage(
+fun UserForm(
+    loading: Boolean = false,
+    errorText: String = "error",
+    isCreateAccount: Boolean = false,
+    onDone: (String, String) -> Unit = { _, _ -> }
 ) {
-    val mainBgColor = ColorsExtra.SolidDark100
-    val gradient = remember {
-        Brush.verticalGradient(
-            colors = listOf(
-                mainBgColor,
-                mainBgColor.copy(alpha = 0.2f),
-                mainBgColor.copy(alpha = 0.1f),
-                mainBgColor.copy(alpha = 0.3f),
-                mainBgColor.copy(alpha = 0.8f),
-                mainBgColor,
-            ),
-        )
-    }
-    Box(
-        modifier = Modifier
-            .height(300.dp) // It's based on the size of Hero card + various padding so it'd bleed behind
-            .fillMaxWidth()
-            .shadow(
-                elevation = 10.dp,
-                spotColor = mainBgColor,
-                ambientColor = mainBgColor
-            )
+    val email = rememberSaveable { mutableStateOf("") }
+    val password = rememberSaveable { mutableStateOf("") }
+    val passwordFocusRequest = FocusRequester.Default
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val valid = remember(email.value, password.value) {
+        email.value.trim().isNotEmpty() && password.value.trim().isNotEmpty()
 
+    }
+    val modifier = Modifier
+        .wrapContentSize()
+        .background(Color.Transparent)
+        .verticalScroll(rememberScrollState())
+
+
+    Column(
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-               // .data(Drawable.createFromPath("res/drawable/friends_zone.png"))
-                .data(Drawable.createFromPath("C:\\Users\\oleksandr.o.morozov\\AndroidStudioProjects\\meetups\\app\\src\\main\\res\\drawable\\friends_zone.png"))
-                .crossfade(true)
-                .scale(Scale.FIT)
-                .build(),
-            contentDescription = "background",
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(radiusX = 15.dp, radiusY = 15.dp) // This will be ignored prior to Android 12
-                .shadow(
-                    elevation = 1.dp,
-                    spotColor = mainBgColor,
-                    ambientColor = mainBgColor
-                )
-               // .matchParentSize()
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawRect(gradient, blendMode = BlendMode.SrcAtop)
-                    }
-                }
-                .graphicsLayer(scaleX = 1.5f, scaleY = 1.2f),
-            contentScale = ContentScale.Crop,
+        if (isCreateAccount) Text(
+            text = stringResource(R.string.create_acct),
+            modifier = Modifier.padding(4.dp)
+        ) else Text("")
+        EmailInput(
+            emailState = email, enabled = !loading,
+            onAction = KeyboardActions {
+                passwordFocusRequest.requestFocus()
+            },
         )
+        PasswordInput(
+            errorText = errorText,
+            modifier = Modifier.focusRequester(passwordFocusRequest),
+            passwordState = password,
+            labelId = "Password",
+            enabled = !loading, //Todo change this
+            onAction = KeyboardActions {
+                if (!valid) return@KeyboardActions
+                onDone(email.value.trim(), password.value.trim())
+            })
+
+        SubmitButton(
+            textId = if (isCreateAccount) "Create Account" else "Login",
+            loading = loading,
+            validInputs = valid
+        ) {
+            onDone(email.value.trim(), password.value.trim())
+            keyboardController?.hide()
+        }
+    }
+}
+
+@Composable
+fun SubmitButton(
+    textId: String,
+    loading: Boolean,
+    validInputs: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Coral.copy(alpha = 0.8f)),
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
+        enabled = !loading && validInputs,
+        shape = RoundedCornerShape(size = 4.dp)
+    ) {
+        if (loading) CircularProgressIndicator(modifier = Modifier.size(25.dp))
+        else Text(text = textId, modifier = Modifier.padding(5.dp))
+
     }
 }

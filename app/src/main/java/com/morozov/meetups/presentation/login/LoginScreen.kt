@@ -1,22 +1,28 @@
 package com.morozov.meetups.presentation.login
 
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,16 +34,28 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.size.Scale
 import com.morozov.meetups.R
+import com.morozov.meetups.presentation.app_components.SystemUI
 import com.morozov.meetups.presentation.navigation.AppScreens
+import com.morozov.meetups.ui.theme.ColorsExtra
+import com.morozov.meetups.ui.theme.Coral
 
 
 @ExperimentalComposeUiApi
@@ -46,48 +64,111 @@ fun LoginScreen (navController: NavController,
                  viewModel: LoginScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val showLoginForm = rememberSaveable { mutableStateOf(true) }
+//    val gradientBrush = Brush.linearGradient(
+//        colors = listOf(Color.Blue, Color.Green),
+//        start = Pair(1f, 0f),
+//        end = Pair(0f, 1f)
+//    )
+    val mainBgColor = Color.Blue
+    val mainBgColor2 = Color.Green
+    val gradient = remember {
+        Brush.verticalGradient(
+            colors = listOf(
+                mainBgColor2,
+                mainBgColor2.copy(alpha = 0.2f),
+                mainBgColor2.copy(alpha = 0.1f),
+                mainBgColor.copy(alpha = 0.2f),
+                mainBgColor.copy(alpha = 0.1f),
+                mainBgColor.copy(alpha = 0.3f),
+                mainBgColor.copy(alpha = 0.8f),
+                mainBgColor,
+            ),
+        )
+    }
+    val gradient2 = remember {
+        Brush.verticalGradient(
+            colors = listOf(Color.Blue, Color.Green),
+            startY = 180f,
+            endY = 650f
+        )
+    }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top) {
+    val colorStart = Coral
+    val colorMid = Coral.copy(0.7f)
+    val colorEnd = ColorsExtra.SolidPink100
+    val gradientColor = remember {
+        Brush.linearGradient(
+            end= Offset.Infinite,
+            colors = listOf(colorStart,colorMid, colorEnd)
+        )
+    }
+
+    val insets = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+
+    SystemUI()
+    Surface(modifier = Modifier
+        .fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .background(gradientColor)
+                .padding(top = insets)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
             AppLogo()
-            if (showLoginForm.value) UserForm(loading = false, isCreateAccount = false){ email, password ->
-                viewModel.signInWithEmailAndPassword(email, password){
+            if (showLoginForm.value) UserForm(
+                loading = false,
+                isCreateAccount = false
+            ) { email, password ->
+                viewModel.signInWithEmailAndPassword(email, password) {
                     navController.navigate(AppScreens.HomeScreen.name)
 
                 }
             }
             else {
-                UserForm(loading = false, isCreateAccount = true){ email, password ->
+                UserForm(loading = false, isCreateAccount = true) { email, password ->
                     viewModel.createUserWithEmailAndPassword(email, password) {
                         navController.navigate(AppScreens.HomeScreen.name)
                     }
                 }
             }
 
-        }
-        Spacer(modifier = Modifier.height(15.dp))
-        Row(
-            modifier = Modifier.padding(15.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val text = if (showLoginForm.value) "Sign up" else "Login"
-            Text(text = "New User?")
-            Text(text,
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+
+            Row(
+                modifier = Modifier.padding(15.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val text = if (showLoginForm.value) "Sign up" else "Login"
+                Text(text = if (showLoginForm.value) "New User?" else "Already have account?")
+                Text(text,
+                    modifier = Modifier
+                        .clickable {
+                            showLoginForm.value = !showLoginForm.value
+
+                        }
+                        .padding(start = 5.dp),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground)
+
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+            Image(
+                painter = painterResource(R.drawable.friends_zone),
+                contentDescription = "logo",
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .clickable {
-                        showLoginForm.value = !showLoginForm.value
+                    .fillMaxSize(),
+                colorFilter = ColorFilter.lighting(Color.White, Coral.copy(alpha = 0.7f, blue = 0.4f))
 
-                    }
-                    .padding(start = 5.dp),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground)
-
+            )
         }
-
     }
-
 }
 
 @ExperimentalComposeUiApi
@@ -109,7 +190,7 @@ fun UserForm(
     }
     val modifier = Modifier
         .height(250.dp)
-        .background(MaterialTheme.colorScheme.background)
+        .background(Color.Transparent)
         .verticalScroll(rememberScrollState())
 
 
@@ -145,6 +226,7 @@ fun UserForm(
 
 
 
+
     }
 
 
@@ -157,11 +239,12 @@ fun SubmitButton(textId: String,
                  onClick: () -> Unit) {
     Button(
         onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Coral.copy(alpha = 0.8f)),
         modifier = Modifier
-            .padding(3.dp)
+            .padding(10.dp)
             .fillMaxWidth(),
         enabled = !loading && validInputs,
-        shape = CircleShape
+        shape = RoundedCornerShape(size = 4.dp)
     ) {
         if (loading) CircularProgressIndicator(modifier = Modifier.size(25.dp))
         else Text(text = textId, modifier = Modifier.padding(5.dp))

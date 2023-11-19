@@ -89,6 +89,8 @@ fun EmailInput(
 fun InputField(
     modifier: Modifier = Modifier,
     valueState: MutableState<String>,
+    errorText:String = "",
+    supportText: String = "",
     labelId: String,
     enabled: Boolean,
     isSingleLine: Boolean = true,
@@ -96,81 +98,27 @@ fun InputField(
     imeAction: ImeAction = ImeAction.Next,
     onAction: KeyboardActions = KeyboardActions.Default
 ) {
-
-    OutlinedTextField(value = valueState.value,
-        onValueChange = { valueState.value  = it},
-                shape = RoundedCornerShape(size = 6.dp),
-        label = { Text(text = labelId)},
-        singleLine = isSingleLine,
-        textStyle = TextStyle(fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onBackground),
-        modifier = modifier
-            .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
-            .fillMaxWidth(),
-        enabled = enabled,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
-        keyboardActions = onAction,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = ColorsExtra.SolidLight100,
-            unfocusedTextColor = ColorsExtra.SolidLight100,
-            errorTextColor = ColorsExtra.SolidDark100,
-
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = ColorsExtra.SolidPink100.copy(0.1f),
-            errorContainerColor = ColorsExtra.SolidLight10,
-
-            focusedBorderColor = ColorsExtra.SolidLight80,
-            unfocusedBorderColor = ColorsExtra.SolidLight100,
-            errorBorderColor = ColorsExtra.SolidRed100,
-
-            focusedLabelColor = ColorsExtra.TransparentLight50,
-            unfocusedLabelColor = ColorsExtra.SolidLight50,
-            errorLabelColor = ColorsExtra.SolidRed100,
-
-            errorSupportingTextColor = ColorsExtra.SolidDark100,
-            focusedSupportingTextColor = ColorsExtra.SolidDark100,
-            unfocusedSupportingTextColor = ColorsExtra.SolidDark100,
-        )
-
-    )
-
-
-}
-
-
-
-@Composable
-fun PasswordInput(
-    modifier: Modifier,
-    passwordState: MutableState<String>,
-    keyboardType: KeyboardType = KeyboardType.Password,
-    labelId: String,
-    enabled: Boolean,
-    errorText:String = "Error",
-    supportText: String = "",
-    imeAction: ImeAction = ImeAction.Done,
-    onAction: KeyboardActions = KeyboardActions.Default,
-) {
     var showPassword by remember { mutableStateOf(false) }
     val visualTransformation = if (showPassword || keyboardType != KeyboardType.Password) {
         VisualTransformation.None
     } else {
         PasswordVisualTransformation()
     }
-        PasswordVisualTransformation()
-    OutlinedTextField(value = passwordState.value,
+
+        OutlinedTextField(
+            value =valueState.value,
         onValueChange = {
-            passwordState.value = it
+            valueState.value = it
         },
         label = { Text(text = labelId)},
-        singleLine = true,
+        singleLine = isSingleLine,
         textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground),
         modifier = modifier
             .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
             .fillMaxWidth(),
         enabled = enabled,
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
+            keyboardType = KeyboardType.Text,
             imeAction = imeAction),
         visualTransformation = visualTransformation,
         supportingText = {
@@ -219,6 +167,33 @@ fun PasswordInput(
         )
     )
 
+
+}
+
+
+
+@Composable
+fun PasswordInput(
+    modifier: Modifier,
+    passwordState: MutableState<String>,
+    keyboardType: KeyboardType = KeyboardType.Password,
+    labelId: String,
+    enabled: Boolean,
+    errorText:String = "Error",
+    supportText: String = "",
+    imeAction: ImeAction = ImeAction.Done,
+    onAction: KeyboardActions = KeyboardActions.Default,
+) {
+    InputField(
+        modifier = modifier,
+        valueState = passwordState,
+        labelId =  labelId,
+        enabled = enabled,
+        keyboardType = keyboardType,
+        imeAction = imeAction,
+        errorText = errorText,
+        supportText = supportText,
+        onAction = onAction)
 }
 
 @ExperimentalComposeUiApi

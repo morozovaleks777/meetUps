@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +31,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.morozov.meetups.R
@@ -48,7 +48,6 @@ fun LoginScreen(
     viewModel: LoginScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val showLoginForm = rememberSaveable { mutableStateOf(true) }
-
 
     val colorStart = Coral
     val colorMid = Coral.copy(0.7f)
@@ -109,7 +108,8 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val text = if (showLoginForm.value) "Sign up" else "Login"
-                Text(text = if (showLoginForm.value) "New User?" else "Already have account?")
+                Text(text = if (showLoginForm.value) "New User?" else "Already have account?",
+                    color = Color.White)
                 Text(text,
                     modifier = Modifier
                         .clickable {
@@ -118,7 +118,8 @@ fun LoginScreen(
                         }
                         .padding(start = 5.dp),
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground)
+                    textDecoration =  TextDecoration.Underline,
+                    color = Color.White)
 
             }
             Spacer(modifier = Modifier.height(15.dp))

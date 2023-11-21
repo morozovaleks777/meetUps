@@ -13,20 +13,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class LoginScreenViewModel:ViewModel() {
-    // val loadingState = MutableStateFlow(LoadingState.IDLE)
+class LoginScreenViewModel : ViewModel() {
     private val auth: FirebaseAuth = Firebase.auth
 
     private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading
-val errorMessage = MutableStateFlow("")
+    val errorMessage = MutableStateFlow("")
 
 
-
-        fun signInWithEmailAndPassword(email: String, password: String, home: () -> Unit) =
-            viewModelScope.launch {
-                if (isEmailValid(email))
-                {
+    fun signInWithEmailAndPassword(email: String, password: String, home: () -> Unit) =
+        viewModelScope.launch {
+            if (isEmailValid(email)) {
                 try {
                     auth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
@@ -38,9 +35,11 @@ val errorMessage = MutableStateFlow("")
                                     )
 
                                 home()
-                            }else {
-                                Timber.tag("FB").d("signInWithEmailAndPassword: %s", task.exception?.message)
-                                errorMessage.value = "Authentication failed: ${task.exception?.message}"
+                            } else {
+                                Timber.tag("FB")
+                                    .d("signInWithEmailAndPassword: %s", task.exception?.message)
+                                errorMessage.value =
+                                    "Authentication failed: ${task.exception?.message}"
                             }
                         }
                 } catch (ex: Exception) {
@@ -49,20 +48,21 @@ val errorMessage = MutableStateFlow("")
                 }
 
             } else {
-                    errorMessage.value = "Invalid email format"
-                }
-    }
-    fun isEmailValid(email: String): Boolean {
+                errorMessage.value = "Invalid email format"
+            }
+        }
+
+    private fun isEmailValid(email: String): Boolean {
         val emailRegex = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
         return email.matches(emailRegex.toRegex())
     }
 
 
-
     fun createUserWithEmailAndPassword(
         email: String,
         password: String,
-        home: () -> Unit) {
+        home: () -> Unit
+    ) {
         if (_loading.value == false) {
             _loading.value = true
             auth.createUserWithEmailAndPassword(email, password)
@@ -72,13 +72,12 @@ val errorMessage = MutableStateFlow("")
                         val displayName = task.result?.user?.email?.split('@')?.get(0)
                         createUser(displayName)
                         home()
-                    }else {
+                    } else {
                         Timber.tag("FB")
                             .d("createUserWithEmailAndPassword: %s", task.result.toString())
 
                     }
                     _loading.value = false
-
 
                 }
         }
@@ -89,21 +88,18 @@ val errorMessage = MutableStateFlow("")
     private fun createUser(displayName: String?) {
         val userId = auth.currentUser?.uid
 
-        val user = MUser(userId = userId.toString(),
+        val user = MUser(
+            userId = userId.toString(),
             displayName = displayName.toString(),
             avatarUrl = "",
             quote = "Life is great",
             profession = "Android Developer",
-            id = null).toMap()
+            id = null
+        ).toMap()
 
 
         FirebaseFirestore.getInstance().collection("users")
             .add(user)
-
-
-
-
-
 
 
     }

@@ -41,10 +41,10 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel,
     transition: Transition<EnterExitState>,
 ) {
-    LaunchedEffect(Unit){
-        delay(5000)
-        navController.navigate(AppScreens.MapScreen.name)
-    }
+//    LaunchedEffect(Unit){
+//        delay(5000)
+//        navController.navigate(AppScreens.MapScreen.name)
+//    }
     Scaffold(
         bottomBar = {
             BottomAppBar() {

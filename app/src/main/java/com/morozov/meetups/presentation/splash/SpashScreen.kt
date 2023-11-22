@@ -20,7 +20,7 @@ fun SplashScreen(navController: NavHostController){
     }
 LaunchedEffect(Unit){
     delay(3000)
-    navController.navigate(AppScreens.HomeScreen.name)
+    navController.navigate(AppScreens.LoginScreen.name)
 }
 
 }

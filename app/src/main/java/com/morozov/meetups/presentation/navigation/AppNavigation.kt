@@ -22,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.dwkidsandroid.presentation.navigation.SharedViewModel
 import com.morozov.meetups.presentation.home_screen.HomeScreen
+import com.morozov.meetups.presentation.login.LoginScreen
 import com.morozov.meetups.presentation.mapScreen.MapScreen
 import com.morozov.meetups.presentation.navigation.NavigationUtils.getExtrasViewModel
 import com.morozov.meetups.presentation.splash.SplashScreen
@@ -59,6 +60,11 @@ fun AppNavigation(
                 sharedViewModel = navController.getExtrasViewModel(navEntry = it),
                 transition = transition.value
             )
+        }
+        composableAnimated(
+            route = AppScreens.SplashScreen.name,
+        ) {
+            LoginScreen(navController = navController)
         }
         composableAnimated(
             route = AppScreens.MapScreen.name,

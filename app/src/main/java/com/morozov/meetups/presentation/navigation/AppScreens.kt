@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 
 enum class AppScreens {
     SplashScreen,
+    LoginScreen,
     DetailScreen,
     DetailScreenTablet,
     VideoPlayerScreen,

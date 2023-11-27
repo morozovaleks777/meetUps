@@ -45,7 +45,7 @@ fun AppNavigation(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
         navController = navController,
-        startDestination = AppScreens.SplashScreen.name,
+        startDestination = AppScreens.HomeScreen.name,
     ) {
         composableAnimated(
             route = AppScreens.SplashScreen.name,
@@ -62,7 +62,7 @@ fun AppNavigation(
             )
         }
         composableAnimated(
-            route = AppScreens.SplashScreen.name,
+            route = AppScreens.LoginScreen.name,
         ) {
             LoginScreen(navController = navController)
         }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -20,18 +21,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.dwkidsandroid.presentation.navigation.SharedViewModel
 import com.morozov.meetups.R
-import com.morozov.meetups.presentation.navigation.AppScreens
-import kotlinx.coroutines.delay
+import com.morozov.meetups.presentation.app_components.AnnotatedStringWithStyles
+import com.morozov.meetups.presentation.app_components.AnnotatedStyle
+import com.morozov.meetups.presentation.app_components.MeetUpsAppBar
+import com.morozov.meetups.presentation.app_components.SystemUI
+import kotlin.random.Random
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -41,15 +50,50 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel,
     transition: Transition<EnterExitState>,
 ) {
-//    LaunchedEffect(Unit){
-//        delay(5000)
-//        navController.navigate(AppScreens.MapScreen.name)
-//    }
+SystemUI()
     Scaffold(
         bottomBar = {
             BottomAppBar() {
 
             }
+        },
+        topBar = {
+            val st = remember {
+                mutableStateOf(AnnotatedStyle(0, SpanStyle(fontWeight = FontWeight.Bold, fontSize = 45.sp, color = Color.Magenta)))
+            }
+            val st2 = remember {
+                mutableStateOf(AnnotatedStyle(2, SpanStyle(fontWeight = FontWeight.Bold, fontSize = 25.sp, color = Color.Green)))
+            }
+            MeetUpsAppBar(
+                title = {
+                    Column(modifier = Modifier.height(100.dp)) {
+
+
+                        AnnotatedStringWithStyles(
+                            stringResource(id = R.string.app_name),
+                            st.value,
+                            st2.value,
+                        ) {
+                            st2.value = AnnotatedStyle(2,
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 25.sp,
+                                    color = generateRandomColor()))
+                            st.value = AnnotatedStyle(
+                                0,
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 45.sp,
+                                    color = generateRandomColor()
+                                )
+                            )
+                        }
+                    }
+                        },
+                showProfile = true,
+                navController = navController,
+                onSearchClicked = {},
+        )
         }
     ) {it -> 
 
@@ -60,7 +104,7 @@ fun HomeScreen(
                 .padding(it)
         ) {
             // Карточки активности
-            ActivityCard("Новое фото", R.drawable.ic_launcher_foreground)
+           ActivityCard("Новое фото", R.drawable.ic_launcher_foreground)
             ActivityCard("Обновление статуса", R.drawable.ic_launcher_background)
 
             // Профиль пользователя
@@ -128,4 +172,11 @@ fun ProfileCard(name: String, age: String, status: String) {
             }
         }
     }
+}
+fun generateRandomColor(): Color {
+    val red = Random.nextInt(256)
+    val green = Random.nextInt(256)
+    val blue = Random.nextInt(256)
+
+    return        Color(red, green, blue)
 }

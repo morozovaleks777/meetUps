@@ -1,4 +1,4 @@
-package com.morozov.meetups.presentation.login
+package com.morozov.meetups.presentation.screens.login
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,12 +9,17 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.morozov.meetups.domain.MUser
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-class LoginScreenViewModel : ViewModel() {
-    private val auth: FirebaseAuth = Firebase.auth
+@HiltViewModel
+class LoginScreenViewModel @Inject constructor(
+    private val auth: FirebaseAuth
+) : ViewModel() {
+
 
     private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading

@@ -1,10 +1,11 @@
-package com.morozov.meetups.presentation.home_screen
+package com.morozov.meetups.presentation.screens.home_screen
 
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Transition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,25 +25,37 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.dwkidsandroid.presentation.navigation.SharedViewModel
 import com.morozov.meetups.R
+import com.morozov.meetups.domain.model.model.User
 import com.morozov.meetups.presentation.app_components.AnnotatedStringWithStyles
 import com.morozov.meetups.presentation.app_components.AnnotatedStyle
 import com.morozov.meetups.presentation.app_components.MeetUpsAppBar
 import com.morozov.meetups.presentation.app_components.SystemUI
+import com.morozov.meetups.presentation.navigation.AppScreens
+import com.morozov.meetups.presentation.screens.profile.ProfileViewModel
 import kotlin.random.Random
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -54,7 +70,14 @@ SystemUI()
     Scaffold(
         bottomBar = {
             BottomAppBar() {
-
+Row() {
+    Icon(  Icons.Filled.Person,
+        modifier = Modifier
+            .clickable { navController.navigate(AppScreens.ProfileScreen.name) }
+            .scale(1.5f),
+        contentDescription = "profile Icon")
+    ClickableText(text = AnnotatedString("map"), onClick ={navController.navigate(AppScreens.MapScreen.name)} )
+}
             }
         },
         topBar = {
@@ -78,7 +101,8 @@ SystemUI()
                                 SpanStyle(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 25.sp,
-                                    color = generateRandomColor()))
+                                    color = generateRandomColor()
+                                ))
                             st.value = AnnotatedStyle(
                                 0,
                                 SpanStyle(
@@ -95,20 +119,29 @@ SystemUI()
                 onSearchClicked = {},
         )
         }
-    ) {it -> 
+    ) {it ->
+        val vm: ProfileViewModel = hiltViewModel()
+val url = remember {
+   vm.userDataStateFromFirebase.value
+}
 
-
+        var userDataFromFirebase by remember { mutableStateOf(User()) }
+        userDataFromFirebase = vm.userDataStateFromFirebase.value
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
         ) {
+
+            LaunchedEffect(url ){
+          vm.loadProfileFromFirebase()
+            }
             // Карточки активности
            ActivityCard("Новое фото", R.drawable.ic_launcher_foreground)
             ActivityCard("Обновление статуса", R.drawable.ic_launcher_background)
 
             // Профиль пользователя
-            ProfileCard("John Doe", "28 лет", "Онлайн")
+            ProfileCard(userDataFromFirebase.userName, "28 лет", userDataFromFirebase.status,userDataFromFirebase.userProfilePictureUrl)
 
         }
     }
@@ -140,7 +173,7 @@ fun ActivityCard(activityText: String, iconResource: Int) {
 }
 
 @Composable
-fun ProfileCard(name: String, age: String, status: String) {
+fun ProfileCard(name: String, age: String, status: String,url:String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,7 +186,13 @@ fun ProfileCard(name: String, age: String, status: String) {
         ) {
             // Аватар профиля (вставьте свою логику для получения изображения)
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(url)
+                        .error(R.drawable.ic_launcher_background)
+                        .build()
+                ),
+                //painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)

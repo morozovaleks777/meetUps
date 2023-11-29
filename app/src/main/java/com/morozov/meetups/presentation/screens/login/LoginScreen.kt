@@ -1,4 +1,4 @@
-package com.morozov.meetups.presentation.login
+package com.morozov.meetups.presentation.screens.login
 
 
 import androidx.compose.foundation.Image
@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.morozov.meetups.R
 import com.morozov.meetups.presentation.app_components.SystemUI
@@ -45,7 +46,7 @@ import com.morozov.meetups.ui.theme.Coral
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: LoginScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: LoginScreenViewModel = hiltViewModel()
 ) {
     val showLoginForm = rememberSaveable { mutableStateOf(true) }
 

@@ -1,4 +1,4 @@
-package com.morozov.meetups.presentation.splash
+package com.morozov.meetups.presentation.screens.splash
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

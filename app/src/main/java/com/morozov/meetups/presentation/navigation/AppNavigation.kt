@@ -5,12 +5,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
@@ -20,12 +22,13 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.morozov.meetups.presentation.screens.profile.ProfileScreen
 import com.example.dwkidsandroid.presentation.navigation.SharedViewModel
-import com.morozov.meetups.presentation.home_screen.HomeScreen
-import com.morozov.meetups.presentation.login.LoginScreen
-import com.morozov.meetups.presentation.mapScreen.MapScreen
+import com.morozov.meetups.presentation.screens.home_screen.HomeScreen
+import com.morozov.meetups.presentation.screens.login.LoginScreen
+import com.morozov.meetups.presentation.screens.mapScreen.MapScreen
 import com.morozov.meetups.presentation.navigation.NavigationUtils.getExtrasViewModel
-import com.morozov.meetups.presentation.splash.SplashScreen
+import com.morozov.meetups.presentation.screens.splash.SplashScreen
 
 
 private const val ANIMATION_SPEED = 900
@@ -39,13 +42,15 @@ private const val SHOW_ID = "showId"
 @Composable
 fun AppNavigation(
     navController: NavHostController,
+    snackBarHostState: SnackbarHostState,
+    keyboardController: SoftwareKeyboardController
 ) {
 
     NavHost(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
         navController = navController,
-        startDestination = AppScreens.HomeScreen.name,
+        startDestination = AppScreens.SplashScreen.name,
     ) {
         composableAnimated(
             route = AppScreens.SplashScreen.name,
@@ -69,7 +74,18 @@ fun AppNavigation(
         composableAnimated(
             route = AppScreens.MapScreen.name,
         ) {
-            MapScreen(navController = navController)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MapScreen(navController = navController)
+            }
+        }
+        composableAnimated(
+            route = AppScreens.ProfileScreen.name,
+        ) {
+            ProfileScreen(navController = navController,
+                profileViewModel = hiltViewModel(),
+                snackbarHostState = snackBarHostState,
+                keyboardController = keyboardController
+            )
         }
 //        composableAnimated(
 //            route = AppScreens.DetailScreen.name,

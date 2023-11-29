@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -20,10 +21,13 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -257,3 +261,41 @@ fun DefaultClickableText(
     )
 }
 
+@Composable
+fun LogOutCustomText(
+    entry: String = "Log Out",
+    fontSize: TextUnit = 10.sp,
+    onClick: () -> Unit = {}
+) {
+    Button(
+        modifier = Modifier
+            .fillMaxWidth(),
+        onClick = { onClick() },
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+    ) {
+        Text(
+            text = "Log Out",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onError
+        )
+    }
+
+//    Box(
+//        modifier = Modifier
+//            .clip(RoundedCornerShape(percent = 50))
+//            .background(
+//                MaterialTheme.colorScheme.surface
+//            )
+//            .height(26.dp)
+//            .fillMaxWidth()
+//            .clickable {
+//                onClick()
+//            }) {
+//        Text(
+//            modifier = Modifier.align(Alignment.Center),
+//            text = entry,
+//            fontSize = fontSize,
+//            color = Color.Red
+//        )
+//    }
+}

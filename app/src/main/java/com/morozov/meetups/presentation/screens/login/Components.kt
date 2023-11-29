@@ -1,4 +1,4 @@
-package com.morozov.meetups.presentation.login
+package com.morozov.meetups.presentation.screens.login
 
 
 

@@ -113,6 +113,7 @@ fun MeetUpsAppBar(
     icon: ImageVector? = null,
     showProfile: Boolean = true,
     navController: NavController,
+    setStatus:() -> Unit = {},
     onSearchClicked:() -> Unit = {},
     onBackArrowClicked:() -> Unit = {}
 ) {
@@ -148,6 +149,7 @@ fun MeetUpsAppBar(
                 onClick = {
                 FirebaseAuth.getInstance()
                     .signOut().run {
+                       setStatus()
                         navController.navigate(AppScreens.LoginScreen.name)
                     }
                }

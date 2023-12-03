@@ -17,6 +17,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
+import com.morozov.meetups.data.AuthScreenRepositoryImpl
 import com.morozov.meetups.data.LocationService
 import com.morozov.meetups.data.ProfileScreenRepositoryImpl
 import com.morozov.meetups.domain.repository.AuthScreenRepository
@@ -57,10 +58,10 @@ object AppModule {
     @Provides
     fun providesDataStore(application: Application) = application.dataStore
 
-//    @Provides
-//    fun provideAuthRepository(
-//        auth: FirebaseAuth,
-//    ): AuthScreenRepository = AuthScreenRepositoryImpl(auth)
+    @Provides
+    fun provideAuthRepository(
+        auth: FirebaseAuth,
+    ): AuthScreenRepository = AuthScreenRepositoryImpl(auth)
 
 //    @Provides
 //    fun provideChatScreenRepository(

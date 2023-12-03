@@ -47,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.example.chatwithme.domain.model.UserStatus
 import com.example.dwkidsandroid.presentation.navigation.SharedViewModel
 import com.morozov.meetups.R
 import com.morozov.meetups.domain.model.model.User
@@ -114,6 +115,7 @@ Row() {
                         }
                     }
                         },
+                setStatus = {homeViewModel.setUserStatusToFirebase(UserStatus.OFFLINE)},
                 showProfile = true,
                 navController = navController,
                 onSearchClicked = {},
@@ -192,7 +194,6 @@ fun ProfileCard(name: String, age: String, status: String,url:String) {
                         .error(R.drawable.ic_launcher_background)
                         .build()
                 ),
-                //painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)

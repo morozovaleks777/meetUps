@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class MapVM @Inject constructor(
@@ -36,6 +37,7 @@ class MapVM @Inject constructor(
             }
         }
     }
+
 }
 
 sealed interface ViewState {
@@ -48,3 +50,4 @@ sealed interface PermissionEvent {
     object Granted : PermissionEvent
     object Revoked : PermissionEvent
 }
+

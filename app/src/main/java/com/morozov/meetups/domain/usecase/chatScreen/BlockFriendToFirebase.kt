@@ -1,4 +1,4 @@
-package com.example.chatwithme.domain.usecase.chatScreen
+package com.morozov.meetups.domain.usecase.chatScreen
 
 import com.morozov.meetups.domain.repository.ChatScreenRepository
 

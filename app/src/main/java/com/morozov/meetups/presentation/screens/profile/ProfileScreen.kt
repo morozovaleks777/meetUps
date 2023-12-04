@@ -16,7 +16,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.morozov.meetups.core.SnackbarController
 import com.example.chatwithme.domain.model.UserStatus
@@ -148,7 +147,7 @@ fun ProfileScreen(
                         }
                         if (phoneNumber != "") {
                             profileViewModel.updateProfileToFirebase(User(userPhoneNumber = phoneNumber))
-                          //  navController.navigate(BottomNavItem.Chat.fullRoute)
+                            navController.navigate(AppScreens.HomeScreen.name)
                         }
                     },
                     enabled = updatedImage != null || name != "" || surName != "" || bio != "" || phoneNumber != ""

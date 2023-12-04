@@ -1,4 +1,4 @@
-package com.example.chatwithme.domain.model
+package com.morozov.meetups.domain.model.model
 
 enum class FriendStatus {
     PENDING, ACCEPTED, CANCELED, BLOCKED

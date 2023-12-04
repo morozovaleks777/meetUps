@@ -1,4 +1,4 @@
-package com.example.chatwithme.domain.usecase.authScreen
+package com.morozov.meetups.domain.usecase.authScreen
 
 import com.morozov.meetups.domain.repository.AuthScreenRepository
 

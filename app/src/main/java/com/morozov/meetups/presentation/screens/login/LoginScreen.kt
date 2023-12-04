@@ -99,7 +99,7 @@ fun LoginScreen(
                 UserForm(
                     loading = false,
                     isCreateAccount = true,
-                    errorText = ""
+                    errorText = errorMessage
                 ) { email, password ->
                     viewModel.createUserWithEmailAndPassword(email, password) {
                         navController.navigate(AppScreens.HomeScreen.name)

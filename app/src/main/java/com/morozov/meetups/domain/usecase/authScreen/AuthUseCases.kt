@@ -1,4 +1,4 @@
-package com.example.chatwithme.domain.usecase.authScreen
+package com.morozov.meetups.domain.usecase.authScreen
 
 data class AuthUseCases(
     val isUserAuthenticated: IsUserAuthenticatedInFirebase,

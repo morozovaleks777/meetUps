@@ -6,10 +6,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 
-import com.example.chatwithme.domain.usecase.authScreen.AuthUseCases
-import com.example.chatwithme.domain.usecase.authScreen.IsUserAuthenticatedInFirebase
-import com.example.chatwithme.domain.usecase.authScreen.SignIn
-import com.example.chatwithme.domain.usecase.authScreen.SignUp
+import com.morozov.meetups.domain.usecase.authScreen.AuthUseCases
+import com.morozov.meetups.domain.usecase.authScreen.IsUserAuthenticatedInFirebase
+import com.morozov.meetups.domain.usecase.authScreen.SignIn
+import com.morozov.meetups.domain.usecase.authScreen.SignUp
 import com.example.chatwithme.domain.usecase.chatScreen.*
 import com.example.chatwithme.domain.usecase.profileScreen.*
 import com.example.chatwithme.domain.usecase.userListScreen.*
@@ -20,11 +20,14 @@ import com.google.firebase.storage.FirebaseStorage
 import com.morozov.meetups.data.AuthScreenRepositoryImpl
 import com.morozov.meetups.data.LocationService
 import com.morozov.meetups.data.ProfileScreenRepositoryImpl
+import com.morozov.meetups.domain.model.model.User
 import com.morozov.meetups.domain.repository.AuthScreenRepository
 import com.morozov.meetups.domain.repository.ChatScreenRepository
 import com.morozov.meetups.domain.repository.ILocationService
 import com.morozov.meetups.domain.repository.ProfileScreenRepository
 import com.morozov.meetups.domain.repository.UserListScreenRepository
+import com.morozov.meetups.domain.usecase.chatScreen.BlockFriendToFirebase
+import com.morozov.meetups.domain.usecase.chatScreen.ChatScreenUseCases
 import com.morozov.meetups.domain.usecase.profileScreen.CreateOrUpdateProfileToFirebase
 import com.morozov.meetups.domain.usecase.profileScreen.LoadProfileFromFirebase
 import com.morozov.meetups.domain.usecase.profileScreen.ProfileScreenUseCases
@@ -137,12 +140,24 @@ object AppModule {
             ),
             searchUserFromFirebase = SearchUserFromFirebase(userListScreenRepository),
         )
+
+    @Provides
+    fun provideUser(): User {
+        // Логика создания объекта User
+        return User()
+    }
     @Singleton
     @Provides
     fun provideLocationClient(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        auth: FirebaseAuth,
+        database: FirebaseDatabase,
+        storage: FirebaseStorage
     ): ILocationService = LocationService(
         context,
-        LocationServices.getFusedLocationProviderClient(context)
+        LocationServices.getFusedLocationProviderClient(context),
+        auth,
+        database,
+        storage
     )
 }

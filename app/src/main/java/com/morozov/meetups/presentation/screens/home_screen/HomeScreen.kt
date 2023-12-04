@@ -191,7 +191,7 @@ fun ProfileCard(name: String, age: String, status: String,url:String) {
                 painter = rememberAsyncImagePainter(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(url)
-                        .error(R.drawable.ic_launcher_background)
+                        .error(R.drawable.ic_eye_closed)
                         .build()
                 ),
                 contentDescription = null,

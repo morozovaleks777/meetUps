@@ -6,6 +6,7 @@ enum class AppScreens {
     SplashScreen,
     LoginScreen,
     ProfileScreen,
+    ChatScreen,
     DetailScreen,
     DetailScreenTablet,
     VideoPlayerScreen,

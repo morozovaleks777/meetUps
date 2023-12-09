@@ -9,11 +9,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -79,6 +81,8 @@ Row() {
             .scale(1.5f),
         contentDescription = "profile Icon")
     ClickableText(text = AnnotatedString("map"), onClick ={navController.navigate(AppScreens.MapScreen.name)} )
+    Spacer(modifier = Modifier.width(10.dp))
+    ClickableText(text = AnnotatedString("chat"), onClick ={navController.navigate(AppScreens.ChatScreen.name)} )
 }
             }
         },

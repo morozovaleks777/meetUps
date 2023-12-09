@@ -28,6 +28,7 @@ import com.morozov.meetups.presentation.screens.home_screen.HomeScreen
 import com.morozov.meetups.presentation.screens.login.LoginScreen
 import com.morozov.meetups.presentation.screens.mapScreen.MapScreen
 import com.morozov.meetups.presentation.navigation.NavigationUtils.getExtrasViewModel
+import com.morozov.meetups.presentation.screens.chats.ChatScreen
 import com.morozov.meetups.presentation.screens.profile.splash.SplashScreen
 
 
@@ -85,6 +86,12 @@ fun AppNavigation(
                 profileViewModel = hiltViewModel(),
                 snackbarHostState = snackBarHostState,
                 keyboardController = keyboardController
+            )
+        }
+        composableAnimated(
+            route = AppScreens.ChatScreen.name,
+        ) {
+            ChatScreen(navController = navController,
             )
         }
 //        composableAnimated(

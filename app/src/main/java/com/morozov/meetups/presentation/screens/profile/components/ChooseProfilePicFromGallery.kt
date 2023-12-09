@@ -76,7 +76,7 @@ fun ChooseProfilePicFromGallery(
 //                    .padding(MaterialTheme.spacing.medium)
                     .clickable { launcher.launch("image/*") }
                     .size(size),
-//                    .clip(CircleShape),
+//                   .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
         } else {

@@ -1,5 +1,6 @@
 package com.morozov.meetups.presentation.screens.home_screen
 
+import android.util.Log
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Transition
@@ -186,6 +187,7 @@ fun ProfileCard(name: String, age: String, status: String,url:String) {
             modifier = Modifier
                 .padding(16.dp)
         ) {
+            Log.d("imageUrl", "ProfileCard: $url")
             // Аватар профиля (вставьте свою логику для получения изображения)
             Image(
                 painter = rememberAsyncImagePainter(

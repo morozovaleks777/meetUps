@@ -28,7 +28,7 @@ import com.morozov.meetups.presentation.screens.home_screen.HomeScreen
 import com.morozov.meetups.presentation.screens.login.LoginScreen
 import com.morozov.meetups.presentation.screens.mapScreen.MapScreen
 import com.morozov.meetups.presentation.navigation.NavigationUtils.getExtrasViewModel
-import com.morozov.meetups.presentation.screens.splash.SplashScreen
+import com.morozov.meetups.presentation.screens.profile.splash.SplashScreen
 
 
 private const val ANIMATION_SPEED = 900

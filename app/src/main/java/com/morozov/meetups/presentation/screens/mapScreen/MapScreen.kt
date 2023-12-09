@@ -1,15 +1,7 @@
 package com.morozov.meetups.presentation.screens.mapScreen
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
@@ -33,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,9 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
-import androidx.core.graphics.toColor
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -54,7 +45,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
@@ -67,12 +57,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.morozov.meetups.domain.model.model.User
 import com.morozov.meetups.extension.hasLocationPermission
 import com.morozov.meetups.presentation.screens.profile.ProfileViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
+
 
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalPermissionsApi::class)
@@ -87,10 +72,10 @@ fun MapScreen(
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
     )
-val context = LocalContext.current
+    val context = LocalContext.current
     val viewState by locationViewModel.viewState.collectAsStateWithLifecycle()
-
-
+    val users = locationViewModel.users.collectAsState()
+    Log.d("userDataStateFromFirebase", "MapScreen:$users ")
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -105,6 +90,7 @@ val context = LocalContext.current
             permissionState.allPermissionsGranted -> {
                 LaunchedEffect(Unit) {
                     locationViewModel.handle(PermissionEvent.Granted)
+                    locationViewModel.sendLocation(PermissionEvent.Granted,LatLng(1.0,0.1))
                 }
             }
 
@@ -166,14 +152,22 @@ val context = LocalContext.current
 
                     LaunchedEffect(key1 = currentLoc) {
                         cameraState.centerOnLocation(currentLoc)
+                        locationViewModel.sendLocation(PermissionEvent.Granted, currentLoc)
+                        locationViewModel.getUserList()
+
+
+                    }
+                    LaunchedEffect(UShort){
+                        locationViewModel.sendLocation(PermissionEvent.Granted, currentLoc)
                     }
 
                     MainScreen(
                         currentPosition = LatLng(
                             currentLoc.latitude,
-                            currentLoc.longitude
-                        ),
-                        cameraState = cameraState
+                            currentLoc.longitude),
+                        usersList = users.value,
+                        cameraState = cameraState,
+                        getMarkerImage = { url -> locationViewModel.getMarkerImage(url)}
                     )
                 }
             }
@@ -183,27 +177,21 @@ val context = LocalContext.current
 
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun MainScreen(currentPosition: LatLng, cameraState: CameraPositionState) {
-    val markers = listOf( LatLng(currentPosition.latitude, currentPosition.longitude),LatLng(currentPosition.latitude+0.0005, currentPosition.longitude))
-    val profileViewModel:ProfileViewModel = hiltViewModel()
-    var userDataFromFirebase by remember { mutableStateOf(User()) }
-        userDataFromFirebase = profileViewModel.userDataStateFromFirebase.value
+fun MainScreen(currentPosition: LatLng, cameraState: CameraPositionState, usersList:List<User>,getMarkerImage:(String) -> Unit) {
+    val profileViewModel: ProfileViewModel = hiltViewModel()
+    var userDataFromFirebase by remember { profileViewModel.userDataStateFromFirebase }
+    val locationViewModel: MapVM = hiltViewModel()
 
-
-    val bitMapState = remember {
-        mutableStateOf<BitmapDescriptor?>(null)
+    LaunchedEffect(currentPosition) {
+        locationViewModel.sendLocation(event = PermissionEvent.Granted, currentPosition)
     }
-    LaunchedEffect(userDataFromFirebase){
+    LaunchedEffect(userDataFromFirebase) {
         profileViewModel.loadProfileFromFirebase()
-        getBitmapFromURL(userDataFromFirebase.userProfilePictureUrl)?.let { bm ->
-            getResizedBitmap(bm, 150, 150)?.let { bitmap ->
-                getRoundedCornerBitmap(bitmap)?.let {
-                    bitMapState.value =
-                        BitmapDescriptorFactory.fromBitmap(it)
-                }
-            }
-        }
+        locationViewModel.sendLocation(event = PermissionEvent.Granted, currentPosition)
+        locationViewModel.getUserList()
+
     }
 
     val uiSettings by remember { mutableStateOf(MapUiSettings()) }
@@ -221,30 +209,40 @@ fun MainScreen(currentPosition: LatLng, cameraState: CameraPositionState) {
             isTrafficEnabled = true
         )
     ) {
-     for (marker in markers){
+        for (user in usersList) {
+            val markerIconState = remember(user.userProfilePictureUrl) {
+                mutableStateOf<BitmapDescriptor?>(null)
+            }
 
+            LaunchedEffect(user.userProfilePictureUrl) {
+                markerIconState.value = locationViewModel.getMarkerImage(user.userProfilePictureUrl).await()
 
-    Marker(
-      icon = bitMapState.value,
-      tag = "i am here",
-        onClick = {
-            Log.d("markerclick", "MainScreen: $marker ")
-            true
-        },
-        visible = true,
-        state = MarkerState(position = marker),
-        title = "MyPosition",
-        snippet = "This is a description of this Marker",
-        draggable = true,
-    )
+            }
 
+            Log.d("userDataStateFromFirebase", "MainScreen: ${user.userName}")
+
+            Marker(
+                icon = markerIconState.value,
+                tag = user.profileUUID,
+                onClick = {
+                    Log.d("userDataStateFromFirebase", "MainScreen: ${user.myLocation} ")
+                    true
+                },
+                visible = true,
+                state = MarkerState(position = LatLng(user.myLocation.latitude, user.myLocation.longitude)),
+                title = "MyPosition",
+                snippet = "This is a description of this Marker",
+                draggable = true,
+            )
+        }
     }
 
-    }
+
 }
 
 
-@Composable
+
+    @Composable
 fun RationaleAlert(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 
     Dialog(
@@ -278,28 +276,7 @@ fun RationaleAlert(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 }
 
 
-
-fun bitmapDescriptorFromVector(
-    context: Context,
-    vectorResId: Int
-): BitmapDescriptor? {
-
-    // retrieve the actual drawable
-    val drawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
-    drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
-    val bm = Bitmap.createBitmap(
-        drawable.intrinsicWidth,
-        drawable.intrinsicHeight,
-        Bitmap.Config.ARGB_8888
-    )
-
-    // draw it onto the bitmap
-    val canvas = android.graphics.Canvas(bm)
-    drawable.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bm)
-}
-
-        private suspend fun CameraPositionState.centerOnLocation(
+private suspend fun CameraPositionState.centerOnLocation(
     location: LatLng
 ) = animate(
     update = CameraUpdateFactory.newLatLngZoom(
@@ -308,55 +285,4 @@ fun bitmapDescriptorFromVector(
     ),
     durationMs = 1500
 )
-
-
-suspend fun getBitmapFromURL(imgUrl: String?): Bitmap? =
-    withContext(Dispatchers.IO) {
-        try {
-            val url = URL(imgUrl)
-            val connection: HttpURLConnection =
-                url.openConnection() as HttpURLConnection
-            connection.doInput = true
-            connection.connect()
-            val input: InputStream = connection.inputStream
-            BitmapFactory.decodeStream(input)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-fun getResizedBitmap(bm: Bitmap, newWidth: Int, newHeight: Int): Bitmap? {
-    val width = bm.width
-    val height = bm.height
-    val scaleWidth = newWidth.toFloat() / width
-    val scaleHeight = newHeight.toFloat() / height
-// CREATE A MATRIX FOR THE MANIPULATION
- val matrix = Matrix()
-// RESIZE THE BIT MAP
- matrix.postScale(scaleWidth, scaleHeight)
-// "RECREATE" THE NEW BITMAP
- val resizedBitmap = Bitmap.createBitmap( bm, 0, 0, width, height, matrix, false)
-    bm.recycle()
-    return resizedBitmap }
-
-fun getRoundedCornerBitmap(bitmap: Bitmap): Bitmap? {
-    val w=bitmap.width
-    val h=bitmap.height
-    val radius = (h / 2).coerceAtMost(w / 2)
-    val output = Bitmap.createBitmap(w + 16, h + 16, Bitmap.Config.ARGB_8888)
-    val paint = Paint()
-    paint.isAntiAlias = true
-    val canvas = Canvas(output)
-    canvas.drawARGB(0, 0, 0, 0)
-    paint.style = Paint.Style.FILL
-    canvas.drawCircle((w / 2 + 8).toFloat(), (h / 2 + 8).toFloat(), radius.toFloat(), paint)
-    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-    canvas.drawBitmap(bitmap, 4f, 4f, paint)
-    paint.xfermode = null
-    paint.style = Paint.Style.STROKE
-    paint.strokeWidth = 10f
-    canvas.drawCircle((w / 2 + 8).toFloat(), (h / 2 + 8).toFloat(), radius.toFloat(), paint)
-    return output }
-
 

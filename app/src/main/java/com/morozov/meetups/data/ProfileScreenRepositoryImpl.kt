@@ -64,6 +64,29 @@ class ProfileScreenRepositoryImpl @Inject constructor(
         }
     }
 
+//    override suspend fun uploadPictureToFirebase(url: Uri): Flow<Response<String>> = flow {
+//        try {
+//            emit(Response.Loading)
+//
+//            // Используйте имя файла из url в качестве идентификатора
+//            val imageName = "images//${url.lastPathSegment}"
+//
+//            val storageRef = storage.reference.child(imageName)
+//
+//            // Дождитесь завершения загрузки файла
+//            storageRef.putFile(url).await()
+//
+//            // Получите URL загруженного файла
+//            val downloadUrl = storageRef.downloadUrl.await().toString()
+//
+//            emit(Response.Success(downloadUrl))
+//
+//        } catch (e: Exception) {
+//            // Включите больше информации об ошибке
+//            emit(Response.Error("Failed to upload image"))
+//        }
+//    }
+
     override suspend fun createOrUpdateProfileToFirebase(user: User): Flow<Response<Boolean>> =
         flow {
             try {

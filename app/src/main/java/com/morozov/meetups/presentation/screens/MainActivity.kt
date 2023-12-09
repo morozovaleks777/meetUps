@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.morozov.meetups.presentation.navigation.AppNavigation
 import com.morozov.meetups.ui.theme.MeetUpsTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,6 +35,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
+        Firebase.database.setPersistenceEnabled(true)
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()

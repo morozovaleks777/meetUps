@@ -147,8 +147,8 @@ fun ProfileScreen(
                         }
                         if (phoneNumber != "") {
                             profileViewModel.updateProfileToFirebase(User(userPhoneNumber = phoneNumber))
-                            navController.navigate(AppScreens.HomeScreen.name)
                         }
+                        navController.navigate(AppScreens.HomeScreen.name)
                     },
                     enabled = updatedImage != null || name != "" || surName != "" || bio != "" || phoneNumber != ""
                 ) {
@@ -159,7 +159,7 @@ fun ProfileScreen(
                 }
                 Spacer(modifier = Modifier.height(50.dp))
 
-                // }
+              //   }
                 LaunchedEffect(UserStatus.ONLINE ){
                    // navController.navigate(BottomNavItem.UserList  .fullRoute)
                 }

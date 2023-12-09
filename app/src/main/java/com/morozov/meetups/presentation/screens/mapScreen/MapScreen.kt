@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +55,8 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.morozov.meetups.domain.model.model.User
 import com.morozov.meetups.extension.hasLocationPermission
-import com.morozov.meetups.presentation.screens.profile.ProfileViewModel
+import kotlinx.coroutines.Deferred
+import timber.log.Timber
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -75,7 +75,7 @@ fun MapScreen(
     val context = LocalContext.current
     val viewState by locationViewModel.viewState.collectAsStateWithLifecycle()
     val users = locationViewModel.users.collectAsState()
-    Log.d("userDataStateFromFirebase", "MapScreen:$users ")
+    Timber.tag("userDataStateFromFirebase").d("MapScreen: %s", users)
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -90,7 +90,7 @@ fun MapScreen(
             permissionState.allPermissionsGranted -> {
                 LaunchedEffect(Unit) {
                     locationViewModel.handle(PermissionEvent.Granted)
-                    locationViewModel.sendLocation(PermissionEvent.Granted,LatLng(1.0,0.1))
+                    locationViewModel.sendLocation(PermissionEvent.Granted, LatLng(1.0, 0.1))
                 }
             }
 
@@ -129,7 +129,11 @@ fun MapScreen(
                         Text("We need permissions to use this app")
                         Button(
                             onClick = {
-                                startActivity( context,  Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),null)
+                                startActivity(
+                                    context,
+                                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
+                                    null
+                                )
                             },
                             enabled = !context.hasLocationPermission()
                         ) {
@@ -157,18 +161,18 @@ fun MapScreen(
 
 
                     }
-                    LaunchedEffect(UShort){
+                    LaunchedEffect(UShort) {
                         locationViewModel.sendLocation(PermissionEvent.Granted, currentLoc)
                     }
 
                     MainScreen(
                         currentPosition = LatLng(
                             currentLoc.latitude,
-                            currentLoc.longitude),
+                            currentLoc.longitude
+                        ),
                         usersList = users.value,
-                        cameraState = cameraState,
-                        getMarkerImage = { url -> locationViewModel.getMarkerImage(url)}
-                    )
+                        cameraState = cameraState
+                    ) { url -> locationViewModel.getMarkerImage(url) }
                 }
             }
         }
@@ -176,23 +180,13 @@ fun MapScreen(
 }
 
 
-
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun MainScreen(currentPosition: LatLng, cameraState: CameraPositionState, usersList:List<User>,getMarkerImage:(String) -> Unit) {
-    val profileViewModel: ProfileViewModel = hiltViewModel()
-    var userDataFromFirebase by remember { profileViewModel.userDataStateFromFirebase }
-    val locationViewModel: MapVM = hiltViewModel()
-
-    LaunchedEffect(currentPosition) {
-        locationViewModel.sendLocation(event = PermissionEvent.Granted, currentPosition)
-    }
-    LaunchedEffect(userDataFromFirebase) {
-        profileViewModel.loadProfileFromFirebase()
-        locationViewModel.sendLocation(event = PermissionEvent.Granted, currentPosition)
-        locationViewModel.getUserList()
-
-    }
+fun MainScreen(
+    currentPosition: LatLng,
+    cameraState: CameraPositionState, usersList: List<User>,
+    getMarkerImage: (String) -> Deferred<BitmapDescriptor?>
+) {
 
     val uiSettings by remember { mutableStateOf(MapUiSettings()) }
     var properties by remember {
@@ -215,21 +209,25 @@ fun MainScreen(currentPosition: LatLng, cameraState: CameraPositionState, usersL
             }
 
             LaunchedEffect(user.userProfilePictureUrl) {
-                markerIconState.value = locationViewModel.getMarkerImage(user.userProfilePictureUrl).await()
-
+                markerIconState.value = getMarkerImage(user.userProfilePictureUrl).await()
             }
 
-            Log.d("userDataStateFromFirebase", "MainScreen: ${user.userName}")
+            Timber.tag("userDataStateFromFirebase").d("MainScreen: %s", user.userName)
 
             Marker(
                 icon = markerIconState.value,
                 tag = user.profileUUID,
                 onClick = {
-                    Log.d("userDataStateFromFirebase", "MainScreen: ${user.myLocation} ")
+                    Timber.tag("userDataStateFromFirebase").d("MainScreen: %s", user.myLocation)
                     true
                 },
                 visible = true,
-                state = MarkerState(position = LatLng(user.myLocation.latitude, user.myLocation.longitude)),
+                state = MarkerState(
+                    position = LatLng(
+                        user.myLocation.latitude,
+                        user.myLocation.longitude
+                    )
+                ),
                 title = "MyPosition",
                 snippet = "This is a description of this Marker",
                 draggable = true,
@@ -241,8 +239,7 @@ fun MainScreen(currentPosition: LatLng, cameraState: CameraPositionState, usersL
 }
 
 
-
-    @Composable
+@Composable
 fun RationaleAlert(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 
     Dialog(

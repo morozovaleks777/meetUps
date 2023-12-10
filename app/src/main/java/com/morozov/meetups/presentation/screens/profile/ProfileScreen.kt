@@ -19,14 +19,17 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.morozov.meetups.core.SnackbarController
 import com.example.chatwithme.domain.model.UserStatus
+import com.example.dwkidsandroid.presentation.navigation.SharedViewModel
 import com.morozov.meetups.domain.model.model.User
 import com.morozov.meetups.presentation.app_components.LogOutCustomText
 import com.morozov.meetups.presentation.navigation.AppScreens
+import com.morozov.meetups.presentation.navigation.NavigationData
 import com.morozov.meetups.presentation.screens.profile.ProfileViewModel
 
 import com.morozov.meetups.presentation.screens.profile.components.ChooseProfilePicFromGallery
 import com.morozov.meetups.presentation.screens.profile.components.ProfileAppBar
 import com.morozov.meetups.presentation.screens.profile.components.ProfileTextField
+import com.morozov.meetups.utils.StringUtils
 
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -34,6 +37,7 @@ import com.morozov.meetups.presentation.screens.profile.components.ProfileTextFi
 fun ProfileScreen(
     profileViewModel: ProfileViewModel,
     navController: NavController,
+    sharedViewModel: SharedViewModel,
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController
 ) {
@@ -72,6 +76,10 @@ fun ProfileScreen(
     var userDataPictureUrl by remember { mutableStateOf("") }
     userDataPictureUrl = userDataFromFirebase.userProfilePictureUrl
 
+    var registrationDate by remember { mutableStateOf("") }
+    registrationDate = userDataFromFirebase.registrationDate
+
+
     val scrollState = rememberScrollState()
 
     var updatedImage by remember {
@@ -90,6 +98,9 @@ fun ProfileScreen(
             .wrapContentHeight()
             .imePadding()
     ) {
+
+
+
         ProfileAppBar()
         Surface(
             modifier = Modifier
@@ -101,7 +112,7 @@ fun ProfileScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-           //         .padding(horizontal = MaterialTheme.spacing.medium)
+                    //         .padding(horizontal = MaterialTheme.spacing.medium)
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -148,6 +159,16 @@ fun ProfileScreen(
                         if (phoneNumber != "") {
                             profileViewModel.updateProfileToFirebase(User(userPhoneNumber = phoneNumber))
                         }
+                        if(registrationDate == "" ){
+                            profileViewModel
+                                .updateProfileToFirebase(
+                                    User(registrationDate = System.currentTimeMillis().toString() )
+                                )
+
+                        }
+
+
+
                         navController.navigate(AppScreens.HomeScreen.name)
                     },
                     enabled = updatedImage != null || name != "" || surName != "" || bio != "" || phoneNumber != ""
@@ -163,6 +184,7 @@ fun ProfileScreen(
                 LaunchedEffect(UserStatus.ONLINE ){
                    // navController.navigate(BottomNavItem.UserList  .fullRoute)
                 }
+
             }
         }
     }

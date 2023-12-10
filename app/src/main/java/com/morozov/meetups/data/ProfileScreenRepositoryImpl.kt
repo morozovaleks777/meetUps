@@ -111,6 +111,8 @@ class ProfileScreenRepositoryImpl @Inject constructor(
                 if (user.userBio != "") childUpdates["/userBio/"] = user.userBio
                 if (user.userPhoneNumber != "") childUpdates["/userPhoneNumber/"] =
                     user.userPhoneNumber
+                if (user.registrationDate != "") childUpdates["/registrationDate/"] =
+                    user.registrationDate
                 childUpdates["/status/"] = UserStatus.ONLINE.toString()
 
                 databaseReference.updateChildren(childUpdates).await()

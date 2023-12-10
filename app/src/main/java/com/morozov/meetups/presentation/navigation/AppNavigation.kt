@@ -84,6 +84,7 @@ fun AppNavigation(
         ) {
             ProfileScreen(navController = navController,
                 profileViewModel = hiltViewModel(),
+                sharedViewModel = navController.getExtrasViewModel(navEntry = it),
                 snackbarHostState = snackBarHostState,
                 keyboardController = keyboardController
             )
@@ -274,7 +275,7 @@ object NavigationUtils {
 }
 
 object NavigationData {
-    const val SELECTED_SHOW = "selected_show_"
+    const val SELECTED_ITEM = "selected_item"
     const val SELECTED_EPISODE = "selected_episode_"
     const val SELECTED_SHOW_EPISODES = "selected_show_episodes"
     const val IS_WATCHED_EPISODE = "is_watched_episode"

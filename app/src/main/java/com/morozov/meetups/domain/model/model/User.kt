@@ -23,7 +23,9 @@ data class User(
     @SerializedName("status")
     var status: String = "",
     @SerializedName("myLocation")
-    var myLocation: LatLngData = LatLngData(LatLng(0.0, 0.0).latitude,LatLng(0.0, 0.0).longitude)
+    var myLocation: LatLngData = LatLngData(LatLng(0.0, 0.0).latitude,LatLng(0.0, 0.0).longitude),
+    @SerializedName("registrationDate")
+    val registrationDate: String = ""
 )
 
 data class LatLngData(

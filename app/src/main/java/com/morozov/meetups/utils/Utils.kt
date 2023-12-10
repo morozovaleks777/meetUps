@@ -6,6 +6,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withAnnotation
 import androidx.compose.ui.text.withStyle
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.regex.Pattern
 
 object StringUtils {
@@ -77,8 +79,12 @@ object StringUtils {
         )
         return emailAddressPattern.matcher(this).matches()
     }
-}
 
+    fun formatTimeMillis(timeMillis: Long, pattern: String): String {
+        val simpleDateFormat = SimpleDateFormat(pattern)
+        return simpleDateFormat.format(Date(timeMillis))
+    }
+}
 sealed class Response<out T> {
     object Loading : Response<Nothing>()
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -12,6 +13,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -103,15 +105,16 @@ class LocationService @Inject constructor(
         val usersRef = database.getReference("Profiles")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-
                 val usersList = dataSnapshot.children.map {
                     it.child("profile").getValue(User::class.java)!!
                 }
+                Log.d("getUserList", "Received data: ${usersList}")
                 this@callbackFlow.trySend(usersList.toList()).isSuccess
                 close()
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("getUserList", "Error fetching data: $databaseError")
                 close(databaseError.toException())
             }
         }
@@ -122,6 +125,8 @@ class LocationService @Inject constructor(
             usersRef.removeEventListener(valueEventListener)
         }
     }.flowOn(Dispatchers.IO)
+
+
 
 
 }

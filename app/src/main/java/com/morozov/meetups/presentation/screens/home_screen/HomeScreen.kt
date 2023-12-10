@@ -1,12 +1,15 @@
 package com.morozov.meetups.presentation.screens.home_screen
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Transition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -29,7 +34,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.invalidateGroupsWithKey
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -47,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -59,9 +68,13 @@ import com.morozov.meetups.presentation.app_components.AnnotatedStyle
 import com.morozov.meetups.presentation.app_components.MeetUpsAppBar
 import com.morozov.meetups.presentation.app_components.SystemUI
 import com.morozov.meetups.presentation.navigation.AppScreens
+import com.morozov.meetups.presentation.screens.mapScreen.MapVM
 import com.morozov.meetups.presentation.screens.profile.ProfileViewModel
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.random.Random
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreen(
@@ -70,8 +83,36 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel,
     transition: Transition<EnterExitState>,
 ) {
-SystemUI()
+    SystemUI()
+
+    val profileViewModel: MapVM = hiltViewModel()
+    LaunchedEffect(Unit) {
+        homeViewModel.getNewUsersList()
+        profileViewModel.getUserList()
+    }
+//    val newUsersState = remember {
+//        homeViewModel.listNewUsers.asStateFlow()
+//    }.collectAsState(initial = emptyList())
+    var newUsersState2 by remember { mutableStateOf(listOf(User())) }
+
+    val newUsersState by
+        homeViewModel.listNewUsers.collectAsStateWithLifecycle()
+newUsersState2 = newUsersState as MutableList<User>
+
+    val userList = profileViewModel.users.collectAsState()
+
+
+    LaunchedEffect(newUsersState) {
+        homeViewModel.getNewUsersList()
+        profileViewModel.getUserList()
+        Log.d("getUserList2", "HomeScreen: $newUsersState")
+    }
+val colorBack = remember {
+    mutableStateOf(Color.White)
+}
+
     Scaffold(
+        modifier = Modifier.background(color = colorBack.value),
         bottomBar = {
             BottomAppBar() {
 Row() {
@@ -136,20 +177,24 @@ val url = remember {
         userDataFromFirebase = vm.userDataStateFromFirebase.value
         Column(
             modifier = Modifier
+                .background(color = colorBack.value)
                 .fillMaxSize()
                 .padding(it)
         ) {
-
             LaunchedEffect(url ){
           vm.loadProfileFromFirebase()
             }
-            // Карточки активности
-           ActivityCard("Новое фото", R.drawable.ic_launcher_foreground)
-            ActivityCard("Обновление статуса", R.drawable.ic_launcher_background)
 
-            // Профиль пользователя
-            ProfileCard(userDataFromFirebase.userName, "28 лет", userDataFromFirebase.status,userDataFromFirebase.userProfilePictureUrl)
+            ProfileCard(userDataFromFirebase.userName, "28", userDataFromFirebase.status,userDataFromFirebase.userProfilePictureUrl)
+        LaunchedEffect(newUsersState2){
 
+        colorBack.value = generateRandomColor()
+        }
+            if (newUsersState2.isNotEmpty()) {
+                NewUsers(newUsersState)
+            } else {
+                Text("Нові користувачі не знайдені")
+            }
         }
     }
 }
@@ -219,6 +264,19 @@ fun ProfileCard(name: String, age: String, status: String,url:String) {
         }
     }
 }
+@Composable
+fun NewUsers(
+    neuUsers: List<User>
+){
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(neuUsers){ item ->
+          ProfileCard(name = item.userName, age = "88", status = item.status, url = item.userProfilePictureUrl)
+        }
+    }
+}
 fun generateRandomColor(): Color {
     val red = Random.nextInt(256)
     val green = Random.nextInt(256)
@@ -226,3 +284,4 @@ fun generateRandomColor(): Color {
 
     return        Color(red, green, blue)
 }
+

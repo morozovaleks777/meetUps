@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -13,7 +12,6 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -25,7 +23,9 @@ import com.morozov.meetups.domain.repository.ILocationService
 import com.morozov.meetups.extension.hasLocationPermission
 import com.morozov.meetups.utils.Response
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
@@ -103,26 +103,25 @@ class LocationService @Inject constructor(
 
     override fun getUserList(): Flow<List<User>> = callbackFlow {
         val usersRef = database.getReference("Profiles")
-        val valueEventListener = object : ValueEventListener {
+        val valueEventListener =  usersRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val usersList = dataSnapshot.children.map {
                     it.child("profile").getValue(User::class.java)!!
                 }
-                Log.d("getUserList", "Received data: ${usersList}")
-                this@callbackFlow.trySend(usersList.toList()).isSuccess
-                close()
+                this@callbackFlow.trySendBlocking(usersList).isSuccess
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Log.e("getUserList", "Error fetching data: $databaseError")
                 close(databaseError.toException())
             }
-        }
+        })
 
-        usersRef.addListenerForSingleValueEvent(valueEventListener)
+        usersRef.addValueEventListener(valueEventListener)
 
         awaitClose {
             usersRef.removeEventListener(valueEventListener)
+            channel.close()
+            cancel()
         }
     }.flowOn(Dispatchers.IO)
 

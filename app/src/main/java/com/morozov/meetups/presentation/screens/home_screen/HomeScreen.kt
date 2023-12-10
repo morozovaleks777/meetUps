@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -36,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.invalidateGroupsWithKey
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,7 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -70,7 +68,6 @@ import com.morozov.meetups.presentation.app_components.SystemUI
 import com.morozov.meetups.presentation.navigation.AppScreens
 import com.morozov.meetups.presentation.screens.mapScreen.MapVM
 import com.morozov.meetups.presentation.screens.profile.ProfileViewModel
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.random.Random
 
@@ -84,32 +81,21 @@ fun HomeScreen(
     transition: Transition<EnterExitState>,
 ) {
     SystemUI()
+    val colorBack = remember {
+        mutableStateOf(Color.White)
+    }
+    LaunchedEffect(Unit ){
+        homeViewModel.getNewUsersList()
+        colorBack.value = generateRandomColor()
+    }
 
     val profileViewModel: MapVM = hiltViewModel()
-    LaunchedEffect(Unit) {
-        homeViewModel.getNewUsersList()
-        profileViewModel.getUserList()
-    }
-//    val newUsersState = remember {
-//        homeViewModel.listNewUsers.asStateFlow()
-//    }.collectAsState(initial = emptyList())
-    var newUsersState2 by remember { mutableStateOf(listOf(User())) }
 
-    val newUsersState by
-        homeViewModel.listNewUsers.collectAsStateWithLifecycle()
-newUsersState2 = newUsersState as MutableList<User>
+    val newUsersState = remember {
+        homeViewModel.listNewUsers.asStateFlow()
+    }.collectAsState(initial = mutableListOf(User()))
 
     val userList = profileViewModel.users.collectAsState()
-
-
-    LaunchedEffect(newUsersState) {
-        homeViewModel.getNewUsersList()
-        profileViewModel.getUserList()
-        Log.d("getUserList2", "HomeScreen: $newUsersState")
-    }
-val colorBack = remember {
-    mutableStateOf(Color.White)
-}
 
     Scaffold(
         modifier = Modifier.background(color = colorBack.value),
@@ -186,15 +172,14 @@ val url = remember {
             }
 
             ProfileCard(userDataFromFirebase.userName, "28", userDataFromFirebase.status,userDataFromFirebase.userProfilePictureUrl)
-        LaunchedEffect(newUsersState2){
 
-        colorBack.value = generateRandomColor()
-        }
-            if (newUsersState2.isNotEmpty()) {
-                NewUsers(newUsersState)
+
+            if (newUsersState.value.isNotEmpty()) {
+                NewUsers(newUsersState.value)
             } else {
                 Text("Нові користувачі не знайдені")
             }
+            NewUsers(neuUsers = userList.value)
         }
     }
 }
@@ -270,9 +255,10 @@ fun NewUsers(
 ){
 
     LazyRow(
+        state = rememberLazyListState(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(neuUsers){ item ->
+        items(items =neuUsers){ item ->
           ProfileCard(name = item.userName, age = "88", status = item.status, url = item.userProfilePictureUrl)
         }
     }
